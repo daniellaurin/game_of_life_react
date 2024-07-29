@@ -1,9 +1,11 @@
 import React, { useCallback, useState, useRef } from "react";
 import { produce } from "immer";
 
+// Define constants for grid size
 const numRows = 50;
 const numCols = 50;
 
+// Define possible neighbor positions relative to a cell
 const operations = [
   [0, 1],
   [0, -1],
@@ -15,6 +17,7 @@ const operations = [
   [-1, 0],
 ];
 
+// Function to generate an empty grid
 const generateEmptyGrid = () => {
   const rows = [];
   for (let i = 0; i < numRows; i++) {
@@ -25,21 +28,25 @@ const generateEmptyGrid = () => {
 };
 
 function App() {
+  // State for the grid, initialized with an empty grid
   const [grid, setGrid] = useState(() => {
     return generateEmptyGrid();
   });
 
+  // State to track if the simulation is running
   const [running, setRunning] = useState(false);
 
+  // Ref to access the latest 'running' state in the callback
   const runningRef = useRef(running);
   runningRef.current = running;
 
   const runSimulation = useCallback(() => {
-    // kill function
+    // Stop if not running
     if (!runningRef.current) {
       return;
     }
-    // simulate
+
+    // Update the grid based on Game of Life rules
     setGrid((g) => {
       return produce(g, (gridCopy) => {
         for (let i = 0; i < numRows; i++) {
@@ -53,6 +60,7 @@ function App() {
               }
             });
 
+            // Apply Game of Life rules
             if (neightbors < 2 || neightbors > 3) {
               gridCopy[i][j] = 0;
             } else if (g[i][j] === 0 && neightbors === 3) {
@@ -62,12 +70,13 @@ function App() {
         }
       });
     });
-
+    // Schedule the next simulation step
     setTimeout(runSimulation, 100);
   }, []);
 
   return (
     <>
+      {/* Button to start/stop the simulation */}
       <button
         onClick={() => {
           setRunning(!running);
@@ -79,6 +88,7 @@ function App() {
       >
         {running ? "stop" : "start"}
       </button>
+      {/* Button to generate a random grid */}
       <button
         onClick={() => {
           const rows = [];
@@ -93,6 +103,7 @@ function App() {
       >
         random
       </button>
+      {/* Button to clear the grid */}
       <button
         onClick={() => {
           setGrid(generateEmptyGrid());
@@ -100,18 +111,19 @@ function App() {
       >
         clear
       </button>
-
       <div
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${numCols}, 20px)`,
         }}
       >
+        {/* Render the grid */}
         {grid.map((rows, i) =>
           rows.map((col, j) => (
             <div
               key={`${i}-${j}`}
               onClick={() => {
+                // Toggle cell state on click
                 const newGrid = produce(grid, (gridCopy) => {
                   gridCopy[i][j] = grid[i][j] ? 0 : 1;
                 });
